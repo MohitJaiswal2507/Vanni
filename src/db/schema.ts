@@ -1,5 +1,7 @@
+import { nanoid } from "nanoid";
 import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
 
+/* ---------------- USER TABLE ---------------- */
 // user => with unique email
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -17,6 +19,7 @@ export const user = pgTable("user", {
     .notNull(),
 });
 
+/* ---------------- SESSION TABLE ---------------- */
 // session is linked to user due to cascade method
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
@@ -26,11 +29,12 @@ export const session = pgTable("session", {
   updatedAt: timestamp("updated_at").notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
-  userId: text("user_id")
+  userId: text("user_id")// If user is deleted, session is deleted automatically
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
 });
 
+/* ---------------- ACCOUNT TABLE ---------------- */
 export const account = pgTable("account", {
   id: text("id").primaryKey(),
   accountId: text("account_id").notNull(),
@@ -49,6 +53,7 @@ export const account = pgTable("account", {
   updatedAt: timestamp("updated_at").notNull(),
 });
 
+/* ---------------- VERIFICATION TABLE ---------------- */
 export const verification = pgTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
@@ -60,4 +65,31 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updated_at").$defaultFn(
     () => /* @__PURE__ */ new Date(),
   ),
+});
+
+/* ---------------- AGENTS TABLE ---------------- */
+
+export const agents = pgTable("agents", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
+
+  // Agent name
+  name: text("name").notNull(),
+
+  // Owner of this AI agent
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, {
+      onDelete: "cascade",
+    }),
+
+  instructions: text("instructions").notNull(),
+  createdAt: timestamp("created_at")
+    .notNull()
+    .defaultNow(),
+
+  updatedAt: timestamp("updated_at")
+    .notNull()
+    .defaultNow(),
 });
