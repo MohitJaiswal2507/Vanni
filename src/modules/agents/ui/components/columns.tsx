@@ -6,10 +6,10 @@ import { CornerDownRightIcon, VideoIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { GeneratedAvatar } from "@/components/generated-avatar"
 
-import { AgentGetOne } from "../../types"
+import { AgentGetMany, AgentGetOne } from "../../types"
 
 // Defines the columns for the agents table
-export const columns: ColumnDef<AgentGetOne>[] = [
+export const columns: ColumnDef<AgentGetMany>[] = [
   {
     // Uses the "name" field for this column
     accessorKey: "name",
@@ -57,15 +57,15 @@ export const columns: ColumnDef<AgentGetOne>[] = [
     header: "Meetings",
 
     // Displays meeting count inside a badge
-    cell: () => (
+    cell: ({ row }) => (
       <Badge
         variant="outline"
         className="flex items-center gap-x-2 [&>svg]:size-4"
       >
         <VideoIcon className="text-blue-700" />
 
-        {/* Dummy data for now */}
-        5 meetings
+        {row.original.meetingCount} {row.original.meetingCount === 1 ? "meeting" : "meetings"}
+
       </Badge>
     )
   }
