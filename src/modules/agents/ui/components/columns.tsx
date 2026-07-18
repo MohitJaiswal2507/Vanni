@@ -6,10 +6,10 @@ import { CornerDownRightIcon, VideoIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { GeneratedAvatar } from "@/components/generated-avatar"
 
-import { AgentGetMany, AgentGetOne } from "../../types"
+import { AgentsGetMany } from "../../types"
 
 // Defines the columns for the agents table
-export const columns: ColumnDef<AgentGetMany>[] = [
+export const columns: ColumnDef<AgentsGetMany[number]>[] = [
   {
     // Uses the "name" field for this column
     accessorKey: "name",
