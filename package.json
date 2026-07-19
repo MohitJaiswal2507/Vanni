@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "dev:webhook": "ngrok http --url=undermost-timing-proved.ngrok-free.dev 3000"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -18,6 +19,7 @@
     "@neondatabase/serverless": "^1.0.0",
     "@shadcn/react": "^0.2.0",
     "@stream-io/node-sdk": "^0.4.24",
+    "@stream-io/openai-realtime-api": "^0.2.0",
     "@stream-io/video-react-sdk": "^1.18.0",
     "@tanstack/react-query": "^5.76.1",
     "@tanstack/react-table": "^8.21.3",
