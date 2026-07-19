@@ -1,13 +1,16 @@
-import OpenAI from "openai";
 import { and, eq, not } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
+import { geminiClient, GEMINI_CHAT_MODEL } from "@/lib/gemini";
 import { ChatCompletionMessageParam } from "openai/resources/index.mjs";
+
 import {
   MessageNewEvent,
   CallEndedEvent,
   CallTranscriptionReadyEvent,
   CallRecordingReadyEvent,
+  CallRecordingStartedEvent,
   CallSessionParticipantLeftEvent,
+  CallSessionParticipantJoinedEvent,
   CallSessionStartedEvent,
 } from "@stream-io/node-sdk";
 
@@ -18,7 +21,6 @@ import { inngest } from "@/inngest/client";
 import { generateAvatarUri } from "@/lib/avatar";
 import { streamChat } from "@/lib/stream-chat";
 
-const openaiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 function verifySignatureWithSDK(body: string, signature: string): boolean {
   return streamVideo.verifyWebhook(body, signature);
@@ -37,8 +39,18 @@ export async function POST(req: NextRequest) {
 
   const body = await req.text();
 
-  if (!verifySignatureWithSDK(body, signature)) {
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  let eventName = "unknown";
+  try {
+    eventName = JSON.parse(body)?.type ?? "unknown";
+  } catch {}
+
+  const valid = verifySignatureWithSDK(body, signature);
+
+  if (!valid) {
+    return NextResponse.json(
+      { error: "Invalid signature" },
+      { status: 401 }
+    );
   }
 
   let payload: unknown;
@@ -57,6 +69,8 @@ export async function POST(req: NextRequest) {
     if (!meetingId) {
       return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
     }
+
+    console.log("Meeting ID:", meetingId);
 
     const [existingMeeting] = await db
       .select()
@@ -92,16 +106,180 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Agent not found" }, { status: 404 });
     }
 
-    const call = streamVideo.video.call("default", meetingId);
-    const realtimeClient = await streamVideo.video.connectOpenAi({
-      call,
-      openAiApiKey: process.env.OPENAI_API_KEY!,
-      agentUserId: existingAgent.id,
-    });
+    const workerUrl =
+      process.env.AGENT_WORKER_URL ?? "http://localhost:8787";
 
-    realtimeClient.updateSession({
-      instructions: existingAgent.instructions,
-    });
+    console.log("Calling worker:", `${workerUrl}/join`);
+    try {
+      const res = await fetch(`${workerUrl}/join`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          call_type: "default",
+          call_id: meetingId,
+          agent_id: existingAgent.id,
+          agent_name: existingAgent.name,
+          instructions: existingAgent.instructions,
+        }),
+      });
+      const responseText = await res.text();
+
+      console.log("Worker response:", responseText);
+
+      if (!res.ok) {
+        console.error(responseText);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  } else if (eventType === "call.session_participant_joined") {
+    // Fallback trigger: fires for every participant join.
+    // meetingId is embedded in call_cid as "default:<meetingId>".
+    const event = payload as CallSessionParticipantJoinedEvent;
+    const meetingId = event.call_cid.split(":")[1];
+    const participantUserId = event.participant?.user?.id;
+
+    if (!meetingId) {
+      return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
+    }
+
+    // Only proceed when the meeting is still upcoming (not yet activated).
+    // This prevents a double-join if call.session_started already ran first.
+    const [upcomingMeeting] = await db
+      .select()
+      .from(meetings)
+      .where(
+        and(
+          eq(meetings.id, meetingId),
+          not(eq(meetings.status, "completed")),
+          not(eq(meetings.status, "active")),
+          not(eq(meetings.status, "cancelled")),
+          not(eq(meetings.status, "processing")),
+        )
+      );
+
+    if (!upcomingMeeting) {
+      // Already active or doesn't exist — silently ignore.
+      return NextResponse.json({ status: "ok" });
+    }
+
+    // Skip if the joining participant is the AI agent itself (avoid re-entrancy).
+    const [existingAgent] = await db
+      .select()
+      .from(agents)
+      .where(eq(agents.id, upcomingMeeting.agentId));
+
+    if (!existingAgent) {
+      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+    }
+
+    if (participantUserId === existingAgent.id) {
+      return NextResponse.json({ status: "ok" });
+    }
+
+    console.log("Meeting ID:", meetingId);
+
+    // Mark meeting active.
+    await db
+      .update(meetings)
+      .set({ status: "active", startedAt: new Date() })
+      .where(eq(meetings.id, upcomingMeeting.id));
+
+    const workerUrl = process.env.AGENT_WORKER_URL ?? "http://localhost:8787";
+    console.log("Calling worker:", `${workerUrl}/join`);
+
+    try {
+      const res = await fetch(`${workerUrl}/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          call_type: "default",
+          call_id: meetingId,
+          agent_id: existingAgent.id,
+          agent_name: existingAgent.name,
+          instructions: existingAgent.instructions,
+        }),
+      });
+      const responseText = await res.text();
+      console.log("Worker response:", responseText);
+      if (!res.ok) {
+        console.error("Worker error:", responseText);
+      }
+    } catch (err) {
+      console.error("Worker fetch failed:", err);
+    }
+  } else if (eventType === "call.recording_started") {
+    // call.recording_started is CONFIRMED arriving in logs (unlike call.session_started
+    // and call.session_participant_joined which are not subscribed in the Stream Dashboard).
+    // It fires at the same moment the session starts (triggered by the first participant
+    // joining with recording mode: auto-on) and always carries call_cid.
+    const event = payload as CallRecordingStartedEvent;
+    const meetingId = event.call_cid.split(":")[1];
+
+    if (!meetingId) {
+      return NextResponse.json({ error: "Missing meetingId" }, { status: 400 });
+    }
+
+    // Status guard: only join if meeting is still upcoming.
+    // Prevents double-join if call.session_started also fires (once enabled in Dashboard).
+    const [upcomingMeeting] = await db
+      .select()
+      .from(meetings)
+      .where(
+        and(
+          eq(meetings.id, meetingId),
+          not(eq(meetings.status, "completed")),
+          not(eq(meetings.status, "active")),
+          not(eq(meetings.status, "cancelled")),
+          not(eq(meetings.status, "processing")),
+        )
+      );
+
+    if (!upcomingMeeting) {
+      return NextResponse.json({ status: "ok" });
+    }
+
+    const [existingAgent] = await db
+      .select()
+      .from(agents)
+      .where(eq(agents.id, upcomingMeeting.agentId));
+
+    if (!existingAgent) {
+      return NextResponse.json({ error: "Agent not found" }, { status: 404 });
+    }
+
+    console.log("Meeting ID:", meetingId);
+
+    await db
+      .update(meetings)
+      .set({ status: "active", startedAt: new Date() })
+      .where(eq(meetings.id, upcomingMeeting.id));
+
+    const workerUrl = process.env.AGENT_WORKER_URL ?? "http://localhost:8787";
+    console.log("Calling worker:", `${workerUrl}/join`);
+
+    try {
+      const res = await fetch(`${workerUrl}/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          call_type: "default",
+          call_id: meetingId,
+          agent_id: existingAgent.id,
+          agent_name: existingAgent.name,
+          instructions: existingAgent.instructions,
+        }),
+      });
+      const responseText = await res.text();
+      console.log("Worker response:", responseText);
+      if (!res.ok) {
+        console.error("Worker error:", responseText);
+      }
+    } catch (err) {
+      console.error("Worker fetch failed:", err);
+    }
   } else if (eventType === "call.session_participant_left") {
     const event = payload as CallSessionParticipantLeftEvent;
     const meetingId = event.call_cid.split(":")[1]; // call_cid is formatted as "type:id"
@@ -224,16 +402,22 @@ export async function POST(req: NextRequest) {
           content: message.text || "",
         }));
 
-      const GPTResponse = await openaiClient.chat.completions.create({
+      const response = await geminiClient.chat.completions.create({
+        model: GEMINI_CHAT_MODEL,
         messages: [
-          { role: "system", content: instructions },
+          {
+            role: "system",
+            content: instructions,
+          },
           ...previousMessages,
-          { role: "user", content: text },
+          {
+            role: "user",
+            content: text,
+          },
         ],
-        model: "gpt-4o",
       });
 
-      const GPTResponseText = GPTResponse.choices[0].message.content;
+      const GPTResponseText = response.choices[0].message.content;
 
       if (!GPTResponseText) {
         return NextResponse.json(

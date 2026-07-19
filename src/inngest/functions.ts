@@ -1,17 +1,15 @@
-import { eq, inArray } from "drizzle-orm";
 import JSONL from "jsonl-parse-stringify";
-import { createAgent, openai, TextMessage } from "@inngest/agent-kit";
+import { eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import { agents, meetings, user } from "@/db/schema";
 import { inngest } from "@/inngest/client";
+import { geminiClient, GEMINI_CHAT_MODEL } from "@/lib/gemini";
 
 import { StreamTranscriptItem } from "@/modules/meetings/types";
 
-const summarizer = createAgent({
-  name: "summarizer",
-  system: `
-    You are an expert summarizer. You write readable, concise, simple content. You are given a transcript of a meeting and you need to summarize it.
+const SUMMARIZER_SYSTEM_PROMPT = `
+You are an expert summarizer. You write readable, concise, simple content. You are given a transcript of a meeting and you need to summarize it.
 
 Use the following markdown structure for every output:
 
@@ -22,6 +20,7 @@ Provide a detailed, engaging summary of the session's content. Focus on major fe
 Break down key content into thematic sections with timestamp ranges. Each section should summarize key points, actions, or demos in bullet format.
 
 Example:
+
 #### Section Name
 - Main point or demo shown here
 - Another key insight or interaction
@@ -30,84 +29,101 @@ Example:
 #### Next Section
 - Feature X automatically does Y
 - Mention of integration with Z
-  `.trim(),
-  model: openai({ model: "gpt-4o", apiKey: process.env.OPENAI_API_KEY }),
-});
+`.trim();
 
 export const meetingsProcessing = inngest.createFunction(
   { id: "meetings/processing" },
   { event: "meetings/processing" },
   async ({ event, step }) => {
-    const response = await step.fetch(event.data.transcriptUrl);
-
-    const transcript = await step.run("parse-transcript", async () => {
-      const text = await response.text();
-      return JSONL.parse<StreamTranscriptItem>(text);
+    const response = await step.run("fetch-transcript", async () => {
+      return fetch(event.data.transcriptUrl).then((res) => res.text());
     });
 
-    const transcriptWithSpeakers = await step.run("add-speakers", async () => {
-      const speakerIds = [
-        ...new Set(transcript.map((item) => item.speaker_id)),
-      ];
+    const transcript = await step.run("parse-transcript", async () => {
+      return JSONL.parse<StreamTranscriptItem>(response);
+    });
 
-      const userSpeakers = await db
-        .select()
-        .from(user)
-        .where(inArray(user.id, speakerIds))
-        .then((users) =>
-          users.map((user) => ({
-            ...user,
-          }))
-        );
+    const transcriptWithSpeakers = await step.run(
+      "add-speakers",
+      async () => {
+        const speakerIds = [
+          ...new Set(transcript.map((item) => item.speaker_id)),
+        ];
 
-      const agentSpeakers = await db
-        .select()
-        .from(agents)
-        .where(inArray(agents.id, speakerIds))
-        .then((agents) =>
-          agents.map((agent) => ({
-            ...agent,
-          }))
-        );
+        const userSpeakers = await db
+          .select()
+          .from(user)
+          .where(inArray(user.id, speakerIds))
+          .then((users) =>
+            users.map((user) => ({
+              ...user,
+            }))
+          );
 
-      const speakers = [...userSpeakers, ...agentSpeakers];
+        const agentSpeakers = await db
+          .select()
+          .from(agents)
+          .where(inArray(agents.id, speakerIds))
+          .then((agents) =>
+            agents.map((agent) => ({
+              ...agent,
+            }))
+          );
 
-      return transcript.map((item) => {
-        const speaker = speakers.find(
-          (speaker) => speaker.id === item.speaker_id
-        );
+        const speakers = [...userSpeakers, ...agentSpeakers];
 
-        if (!speaker) {
+        return transcript.map((item) => {
+          const speaker = speakers.find(
+            (speaker) => speaker.id === item.speaker_id
+          );
+
+          if (!speaker) {
+            return {
+              ...item,
+              user: {
+                name: "Unknown",
+              },
+            };
+          }
+
           return {
             ...item,
             user: {
-              name: "Unknown",
+              name: speaker.name,
             },
           };
-        }
-
-        return {
-          ...item,
-          user: {
-            name: speaker.name,
-          },
-        };
-      });
-    });
-
-    const { output } = await summarizer.run(
-      "Summarize the following transcript: " +
-        JSON.stringify(transcriptWithSpeakers)
+        });
+      }
     );
+
+    const summary = await step.run("summarize", async () => {
+      const response = await geminiClient.chat.completions.create({
+        model: GEMINI_CHAT_MODEL,
+        messages: [
+          {
+            role: "system",
+            content: SUMMARIZER_SYSTEM_PROMPT,
+          },
+          {
+            role: "user",
+            content:
+              "Summarize the following transcript:\n" +
+              JSON.stringify(transcriptWithSpeakers),
+          },
+        ],
+      });
+
+      return response.choices[0].message.content ?? "";
+    });
 
     await step.run("save-summary", async () => {
       await db
         .update(meetings)
         .set({
-          summary: (output[0] as TextMessage).content as string,
+          summary,
           status: "completed",
         })
-        .where(eq(meetings.id, event.data.meetingId))
-    })
-  },
+        .where(eq(meetings.id, event.data.meetingId));
+    });
+  }
 );
