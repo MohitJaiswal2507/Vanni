@@ -5,4 +5,4 @@ export const geminiClient = new OpenAI({
   baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
 });
 
-export const GEMINI_CHAT_MODEL = "gemini-2.5-flash";
+export const GEMINI_CHAT_MODEL = "gemini-3.5-flash";
