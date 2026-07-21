@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { FaGithub, FaGoogle } from "react-icons/fa";
 
-import { icons, OctagonAlert, OctagonAlertIcon } from "lucide-react";
+import { OctagonAlertIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
