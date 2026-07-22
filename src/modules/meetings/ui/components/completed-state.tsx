@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef } from "react";
 import Link from "next/link";
 import Markdown from "react-markdown";
 import {
@@ -10,7 +13,6 @@ import {
 import { format } from "date-fns";
 
 import { GeneratedAvatar } from "@/components/generated-avatar";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { MeetingGetOne } from "../../types";
@@ -24,43 +26,57 @@ interface Props {
 }
 
 export const CompletedState = ({ data }: Props) => {
+  const tabsListRef = useRef<HTMLDivElement>(null);
+
+  const handleValueChange = () => {
+    requestAnimationFrame(() => {
+      const activeTab = tabsListRef.current?.querySelector<HTMLElement>('[data-state="active"]');
+      if (activeTab) {
+        activeTab.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    });
+  };
+
   return (
-    <div className="flex flex-col gap-y-4">
-      <Tabs defaultValue="summary">
-        <div className="bg-[#F8F5EF] border-2 border-[#412D15] rounded-[20px] px-3 py-1 shadow-[3px_3px_0px_0px_#412D15] select-none">
-          <ScrollArea>
-             <TabsList className="p-0 bg-transparent justify-start rounded-none h-13 gap-x-2 border-0">
+    <div className="flex flex-col gap-y-4 w-full min-w-0">
+      <Tabs defaultValue="summary" onValueChange={handleValueChange} className="w-full min-w-0">
+        <div className="bg-[#F8F5EF] border-2 border-[#412D15] rounded-[20px] px-3 py-1 shadow-[3px_3px_0px_0px_#412D15] select-none w-full min-w-0">
+          <div ref={tabsListRef} className="w-full overflow-x-auto no-scrollbar scroll-smooth">
+             <TabsList className="inline-flex w-max min-w-full p-0 bg-transparent justify-start rounded-none h-13 gap-x-2 border-0">
                 <TabsTrigger
                   value="summary"
-                  className="text-[#6B5C4C] rounded-lg bg-transparent border border-transparent font-bold data-[state=active]:bg-[#1F150C] data-[state=active]:text-[#FFFFFF] data-[state=active]:border-[#412D15] data-[state=active]:shadow-[1.5px_1.5px_0px_0px_#412D15] hover:bg-[#D8D1BE]/40 hover:text-[#1F150C] px-4 py-2 transition-all duration-200 gap-x-2 cursor-pointer h-9 text-sm"
+                  className="text-[#6B5C4C] rounded-lg bg-transparent border border-transparent font-bold data-[state=active]:bg-[#1F150C] data-[state=active]:text-[#FFFFFF] data-[state=active]:border-[#412D15] data-[state=active]:shadow-[1.5px_1.5px_0px_0px_#412D15] hover:bg-[#D8D1BE]/40 hover:text-[#1F150C] px-4 py-2 transition-all duration-200 gap-x-2 cursor-pointer h-9 text-sm shrink-0"
                 >
                   <BookOpenTextIcon className="size-4" />
                   Summary
                 </TabsTrigger>
                 <TabsTrigger
                   value="transcript"
-                  className="text-[#6B5C4C] rounded-lg bg-transparent border border-transparent font-bold data-[state=active]:bg-[#1F150C] data-[state=active]:text-[#FFFFFF] data-[state=active]:border-[#412D15] data-[state=active]:shadow-[1.5px_1.5px_0px_0px_#412D15] hover:bg-[#D8D1BE]/40 hover:text-[#1F150C] px-4 py-2 transition-all duration-200 gap-x-2 cursor-pointer h-9 text-sm"
+                  className="text-[#6B5C4C] rounded-lg bg-transparent border border-transparent font-bold data-[state=active]:bg-[#1F150C] data-[state=active]:text-[#FFFFFF] data-[state=active]:border-[#412D15] data-[state=active]:shadow-[1.5px_1.5px_0px_0px_#412D15] hover:bg-[#D8D1BE]/40 hover:text-[#1F150C] px-4 py-2 transition-all duration-200 gap-x-2 cursor-pointer h-9 text-sm shrink-0"
                 >
                   <FileTextIcon className="size-4" />
                   Transcript
                 </TabsTrigger>
                 <TabsTrigger
                   value="recording"
-                  className="text-[#6B5C4C] rounded-lg bg-transparent border border-transparent font-bold data-[state=active]:bg-[#1F150C] data-[state=active]:text-[#FFFFFF] data-[state=active]:border-[#412D15] data-[state=active]:shadow-[1.5px_1.5px_0px_0px_#412D15] hover:bg-[#D8D1BE]/40 hover:text-[#1F150C] px-4 py-2 transition-all duration-200 gap-x-2 cursor-pointer h-9 text-sm"
+                  className="text-[#6B5C4C] rounded-lg bg-transparent border border-transparent font-bold data-[state=active]:bg-[#1F150C] data-[state=active]:text-[#FFFFFF] data-[state=active]:border-[#412D15] data-[state=active]:shadow-[1.5px_1.5px_0px_0px_#412D15] hover:bg-[#D8D1BE]/40 hover:text-[#1F150C] px-4 py-2 transition-all duration-200 gap-x-2 cursor-pointer h-9 text-sm shrink-0"
                 >
                   <FileVideoIcon className="size-4" />
                   Recording
                 </TabsTrigger>
                 <TabsTrigger
                   value="chat"
-                  className="text-[#6B5C4C] rounded-lg bg-transparent border border-transparent font-bold data-[state=active]:bg-[#1F150C] data-[state=active]:text-[#FFFFFF] data-[state=active]:border-[#412D15] data-[state=active]:shadow-[1.5px_1.5px_0px_0px_#412D15] hover:bg-[#D8D1BE]/40 hover:text-[#1F150C] px-4 py-2 transition-all duration-200 gap-x-2 cursor-pointer h-9 text-sm"
+                  className="text-[#6B5C4C] rounded-lg bg-transparent border border-transparent font-bold data-[state=active]:bg-[#1F150C] data-[state=active]:text-[#FFFFFF] data-[state=active]:border-[#412D15] data-[state=active]:shadow-[1.5px_1.5px_0px_0px_#412D15] hover:bg-[#D8D1BE]/40 hover:text-[#1F150C] px-4 py-2 transition-all duration-200 gap-x-2 cursor-pointer h-9 text-sm shrink-0"
                 >
                   <SparklesIcon className="size-4" />
                   Ask AI
                 </TabsTrigger>
              </TabsList>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
+          </div>
         </div>
         <TabsContent value="chat" className="focus-visible:outline-none">
           <ChatProvider meetingId={data.id} meetingName={data.name} />
