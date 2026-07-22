@@ -73,26 +73,30 @@ export const AgentIdView = ({ agentId }: Props) => {
           onEdit={() => setUpdateAgentDialogOpen(true)}
           onRemove={handleRemoveAgent}
         />
-        <div className="bg-white rounded-lg border">
-          <div className="px-4 py-5 gap-y-5 flex flex-col col-span-5">
-            <div className="flex items-center gap-x-3">
+        <div className="bg-[#F8F5EF] border-2 border-[#412D15] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.04),6px_6px_0px_0px_#412D15] rounded-[24px] hover:-translate-y-0.5 hover:shadow-[7px_7px_0px_0px_#412D15] transition-all duration-300 overflow-hidden">
+          <div className="px-6 py-6 gap-y-5 flex flex-col">
+            <div className="flex items-center gap-x-3.5 select-none">
               <GeneratedAvatar
                 variant="botttsNeutral"
                 seed={data.name}
-                className="size-10"
+                className="size-11 border-2 border-[#412D15] rounded-full overflow-hidden bg-[#F8F5EF] shadow-[2px_2px_0px_0px_#412D15] hover:scale-105 transition-transform duration-200 shrink-0"
               />
-              <h2 className="text-2xl font-medium">{data.name}</h2>
+              <h2 className="text-3xl font-extrabold text-[#1F150C] capitalize leading-none tracking-tight">{data.name}</h2>
             </div>
+            
             <Badge
               variant="outline"
-              className="flex items-center gap-x-2 [&>svg]:size-4"
+              className="flex items-center gap-x-2 [&>svg]:size-4 px-3 py-1.5 bg-[#E1DCC9] border-2 border-[#412D15] shadow-[2px_2px_0px_0px_#412D15] rounded-lg text-[#1F150C] font-bold w-fit hover:shadow-none hover:translate-x-[0.5px] hover:translate-y-[0.5px] transition-all duration-150 cursor-pointer select-none"
             >
-              <VideoIcon className="text-blue-700" />
+              <VideoIcon className="text-[#6B5C4C]" />
               {data.meetingCount} {data.meetingCount === 1 ? "meeting" : "meetings"}
             </Badge>
-            <div className="flex flex-col gap-y-4">
-              <p className="text-lg font-medium">Instructions</p>
-              <p className="text-neutral-800">{data.instructions}</p>
+            
+            <div className="flex flex-col gap-y-3 mt-2">
+              <p className="text-lg font-extrabold text-[#1F150C] tracking-tight select-none">Instructions</p>
+              <div className="bg-[#F5F1E8] border-2 border-[#412D15]/15 rounded-xl p-5 shadow-[inset_1.5px_1.5px_3px_rgba(0,0,0,0.03)] text-base text-[#1F150C]/90 font-medium leading-relaxed select-text whitespace-pre-wrap">
+                {data.instructions}
+              </div>
             </div>
           </div>
         </div>
@@ -105,7 +109,7 @@ export const AgentIdViewLoading = () => {
   return (
     <LoadingState
       title="Loading Agent"
-      description="This may take a fews econds"
+      description="This may take a few seconds"
     />
   );
 };
