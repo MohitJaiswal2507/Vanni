@@ -34,9 +34,13 @@ export const MeetingIdView = ({ meetingId }: Props) => {
     "The following action will remove this meeting"
   );
 
-  const { data } = useSuspenseQuery(
-    trpc.meetings.getOne.queryOptions({ id: meetingId }),
-  );
+  const { data } = useSuspenseQuery({
+    ...trpc.meetings.getOne.queryOptions({ id: meetingId }),
+    refetchInterval: (query) => {
+      const isProcessing = query.state.data?.status === "processing";
+      return isProcessing ? 2000 : false;
+    },
+  });
 
   const removeMeeting = useMutation(
     trpc.meetings.remove.mutationOptions({
