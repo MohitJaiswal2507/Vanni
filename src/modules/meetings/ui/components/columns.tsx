@@ -26,11 +26,11 @@ const statusIconMap = {
 };
 
 const statusColorMap = {
-  upcoming: "bg-yellow-500/20 text-yellow-800 border-yellow-800/5",
-  active: "bg-blue-500/20 text-blue-800 border-blue-800/5",
-  completed: "bg-emerald-500/20 text-emerald-800 border-emerald-800/5",
-  cancelled: "bg-rose-500/20 text-rose-800 border-rose-800/5",
-  processing: "bg-gray-300/20 text-gray-800 border-gray-800/5",
+  upcoming: "bg-[#C98928]/15 text-[#C98928] border-[#C98928]/35 shadow-[1px_1px_2px_rgba(201,137,40,0.06)]",
+  active: "bg-[#1F150C]/10 text-[#1F150C] border-[#1F150C]/25 shadow-[1px_1px_2px_rgba(0,0,0,0.04)]",
+  completed: "bg-[#3F7D58]/15 text-[#3F7D58] border-[#3F7D58]/35 shadow-[1px_1px_2px_rgba(63,125,88,0.06)]",
+  cancelled: "bg-[#B54747]/15 text-[#B54747] border-[#B54747]/35 shadow-[1px_1px_2px_rgba(181,71,71,0.06)]",
+  processing: "bg-[#C98928]/15 text-[#C98928] border-[#C98928]/35 shadow-[1px_1px_2px_rgba(201,137,40,0.06)]",
 }
 
 export const columns: ColumnDef<MeetingGetMany[number]>[] = [
@@ -39,20 +39,20 @@ export const columns: ColumnDef<MeetingGetMany[number]>[] = [
     header: "Meeting Name",
     cell: ({ row }) => (
       <div className="flex flex-col gap-y-1">
-        <span className="font-semibold capitalize">{row.original.name}</span>
+        <span className="font-bold text-base text-[#1F150C] capitalize">{row.original.name}</span>
         <div className="flex items-center gap-x-2">
           <div className="flex items-center gap-x-1">
-            <CornerDownRightIcon className="size-3 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground max-w-50 truncate capitalize">
+            <CornerDownRightIcon className="size-3 text-[#6B5C4C]" />
+            <span className="text-sm text-[#6B5C4C] font-semibold max-w-50 truncate capitalize">
               {row.original.agent.name}
             </span>
           </div>
           <GeneratedAvatar
             variant="botttsNeutral"
             seed={row.original.agent.name}
-            className="size-4"
+            className="size-5 border border-[#412D15] rounded-full overflow-hidden shrink-0 bg-[#F8F5EF] shadow-[1px_1px_0px_0px_#412D15]"
           />
-          <span className="text-sm text-muted-foreground">
+          <span className="text-sm text-[#6B5C4C] font-medium">
             {row.original.startedAt ? format(row.original.startedAt, "MMM d") : ""}
           </span>
         </div>
@@ -69,7 +69,7 @@ export const columns: ColumnDef<MeetingGetMany[number]>[] = [
         <Badge
           variant="outline"
           className={cn(
-            "capitalize [&>svg]:size-4 text-muted-foreground",
+            "capitalize [&>svg]:size-4 font-bold tracking-tight rounded-full px-2.5 py-0.5 border text-xs",
             statusColorMap[row.original.status as keyof typeof statusColorMap]
           )}
         >
@@ -85,9 +85,9 @@ export const columns: ColumnDef<MeetingGetMany[number]>[] = [
     cell: ({ row }) => (
       <Badge
         variant="outline"
-        className="capitalize [&>svg]:size-4 flex items-center gap-x-2"
+        className="capitalize [&>svg]:size-4 flex items-center gap-x-2 px-3 py-1 bg-[#F8F5EF] border-2 border-[#412D15] shadow-[2px_2px_0px_0px_#412D15] rounded-lg text-[#1F150C]/80 font-bold"
       >
-        <ClockFadingIcon className="text-blue-700" />
+        <ClockFadingIcon className="text-[#6B5C4C]" />
         {row.original.duration ? formatDuration(row.original.duration) : "No duration"}
       </Badge>
     ),

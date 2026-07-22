@@ -33,9 +33,12 @@ export const MeetingsListHeader = () => {
       <NewMeetingDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
       <div className="py-4 px-4 md:px-8 flex flex-col gap-y-4">
         <div className="flex items-center justify-between">
-          <h5 className="font-medium text-xl">My Meetings</h5>
-          <Button onClick={() => setIsDialogOpen(true)}>
-            <PlusIcon />
+          <h5 className="font-extrabold text-2xl md:text-3xl text-[#1F150C]">My Meetings</h5>
+          <Button 
+            onClick={() => setIsDialogOpen(true)}
+            className="bg-[#1F150C] hover:bg-[#322316] text-[#FFFFFF] border-2 border-[#412D15] shadow-[3px_3px_0px_0px_#412D15] hover:shadow-[1px_1px_0px_0px_#412D15] hover:translate-x-[1px] hover:translate-y-[1px] active:translate-x-[2px] active:translate-y-[2px] rounded-xl px-4 py-2.5 font-bold transition-all duration-150 flex items-center justify-center gap-x-2 cursor-pointer h-9"
+          >
+            <PlusIcon className="size-4" />
             New Meeting
           </Button>
         </div>
@@ -45,8 +48,11 @@ export const MeetingsListHeader = () => {
             <StatusFilter />
             <AgentIdFilter />
             {isAnyFilterModified && (
-              <Button variant="outline" onClick={onClearFilters}>
-                <XCircleIcon className="size-4" />
+              <Button 
+                onClick={onClearFilters}
+                className="bg-[#E1DCC9] hover:bg-[#D8D1BE] text-[#1F150C] border-2 border-[#412D15] shadow-[2px_2px_0px_0px_#412D15] hover:shadow-none hover:translate-x-[0.5px] hover:translate-y-[0.5px] rounded-xl px-3 py-2 text-xs font-bold transition-all duration-150 flex items-center justify-center gap-x-2 cursor-pointer h-9"
+              >
+                <XCircleIcon className="size-4 text-[#1F150C]" />
                 Clear
               </Button>
             )}

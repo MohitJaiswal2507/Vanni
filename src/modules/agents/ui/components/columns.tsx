@@ -29,20 +29,20 @@ export const columns: ColumnDef<AgentsGetMany[number]>[] = [
             // Generates the same avatar for the same name
             seed={row.original.name}
 
-            className="size-6"
+            className="size-6 border border-[#412D15] rounded-full overflow-hidden shrink-0 bg-[#F8F5EF] shadow-[1px_1px_0px_0px_#412D15]"
           />
 
-          <span className="font-semibold capitalize">
+          <span className="font-bold text-[#1F150C] capitalize">
             {row.original.name}
           </span>
         </div>
 
         {/* Short description/instructions */}
         <div className="flex items-center gap-x-2">
-          <CornerDownRightIcon className="size-3 text-muted-foreground" />
+          <CornerDownRightIcon className="size-3 text-[#6B5C4C]" />
 
           {/* Truncate keeps long text in a single line */}
-          <span className="text-sm text-muted-foreground max-w-50 truncate capitalize">
+          <span className="text-sm text-[#6B5C4C] max-w-50 truncate capitalize font-semibold">
             {row.original.instructions}
           </span>
         </div>
@@ -60,9 +60,9 @@ export const columns: ColumnDef<AgentsGetMany[number]>[] = [
     cell: ({ row }) => (
       <Badge
         variant="outline"
-        className="flex items-center gap-x-2 [&>svg]:size-4"
+        className="flex items-center gap-x-2 [&>svg]:size-4 px-3 py-1 bg-[#F8F5EF] border-2 border-[#412D15] shadow-[2px_2px_0px_0px_#412D15] rounded-lg text-[#1F150C]/80 font-bold"
       >
-        <VideoIcon className="text-blue-700" />
+        <VideoIcon className="text-[#6B5C4C]" />
 
         {row.original.meetingCount} {row.original.meetingCount === 1 ? "meeting" : "meetings"}
 

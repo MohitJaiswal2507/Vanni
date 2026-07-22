@@ -37,7 +37,7 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="rounded-lg border bg-background overflow-hidden">
+    <div className="rounded-[24px] border-2 border-[#412D15] bg-[#F8F5EF] shadow-[inset_2px_2px_4px_rgba(0,0,0,0.04),6px_6px_0px_0px_#412D15] overflow-hidden transition-all duration-300">
       <Table>
         <TableBody>
 
@@ -55,7 +55,7 @@ export function DataTable<TData, TValue>({
                 // Adds selected state for styling
                 data-state={row.getIsSelected() && "selected"}
 
-                className="cursor-pointer"
+                className="cursor-pointer transition-all duration-250 ease-in-out hover:bg-[#D8D1BE]/20 hover:-translate-y-0.5 hover:shadow-[2px_2px_4px_rgba(0,0,0,0.04)] border-b border-[#412D15]/10 last:border-b-0"
               >
 
                 {/* Render only the visible columns */}
@@ -73,10 +73,10 @@ export function DataTable<TData, TValue>({
           ) : (
 
             // Show this message when there is no data
-            <TableRow>
+            <TableRow className="border-0">
               <TableCell
                 colSpan={columns.length}
-                className="h-19 text-center text-muted-foreground"
+                className="h-20 text-center text-[#6B5C4C] font-semibold"
               >
                 No results.
               </TableCell>
