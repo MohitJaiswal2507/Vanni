@@ -21,16 +21,17 @@ export const UpgradeView = () => {
   );
 
   return (
-    <div className="flex-1 py-4 px-4 md:px-8 flex flex-col gap-y-10">
-      <div className="mt-4 flex-1 flex flex-col gap-y-10 items-center">
-        <h5 className="font-medium text-2xl md:text-3xl">
+    <div className="flex-1 py-8 px-4 md:px-8 flex flex-col gap-y-12 bg-radial from-[#F5F1E8] to-[#E1DCC9] min-h-screen">
+      <div className="mt-6 flex-1 flex flex-col gap-y-10 items-center max-w-6xl mx-auto w-full">
+        <h5 className="font-extrabold text-3xl md:text-4xl text-[#1F150C] text-center select-none tracking-tight leading-tight mb-4">
           You are on the{" "}
-          <span className="font-semibold text-primary">
+          <span className="underline decoration-[4px] decoration-[#412D15] underline-offset-4 text-[#1F150C]">
             {currentSubscription?.name ?? "Free"}
           </span>{" "}
           plan
         </h5>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full px-2">
           {products.map((product) => {
             const isCurrentProduct = currentSubscription?.id === product.id;
             const isPremium = !!currentSubscription;
@@ -51,6 +52,7 @@ export const UpgradeView = () => {
                 key={product.id}
                 buttonText={buttonText}
                 onClick={onClick}
+                isCurrentPlan={isCurrentProduct}
                 variant={
                   product.metadata.variant === "highlighted"
                     ? "highlighted"

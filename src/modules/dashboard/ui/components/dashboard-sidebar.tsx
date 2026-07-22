@@ -99,16 +99,20 @@ export const DashboardSidebar = () => {
                       className={cn(
                         "h-12 w-full rounded-xl transition-all duration-200 p-3.5 flex items-center gap-x-3.5 cursor-pointer group select-none border-2",
                         isActive
-                          ? "bg-[#1F150C] text-[#FFFFFF] border-[#412D15] font-extrabold shadow-[3px_3px_0px_0px_#412D15] translate-y-[-1px]"
+                          ? "bg-[#F8F5EF] text-[#412D15] border-[#412D15] font-extrabold shadow-[3px_3px_0px_0px_#412D15] translate-y-[-1px]"
                           : "bg-transparent text-[#6B5C4C] border-transparent hover:bg-[#F8F5EF] hover:text-[#1F150C] hover:border-[#412D15]/30 hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#412D15]"
                       )}
                       isActive={isActive}
                     >
                       <Link href={item.href}>
-                        <item.icon className={cn(
-                          "size-5 transition-transform duration-200 group-hover:scale-110 shrink-0",
-                          isActive ? "text-[#FFFFFF] stroke-[2.5]" : "text-[#6B5C4C] group-hover:text-[#1F150C]"
-                        )} />
+                        <item.icon 
+                          className={cn(
+                            "size-5 transition-transform duration-200 group-hover:scale-110 shrink-0",
+                            isActive ? "text-[#412D15] stroke-[2.5]" : "text-[#6B5C4C] group-hover:text-[#1F150C]"
+                          )} 
+                          stroke="currentColor"
+                          fill="none"
+                        />
                         <span className="text-sm tracking-tight">{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
