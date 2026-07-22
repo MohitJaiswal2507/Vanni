@@ -116,7 +116,7 @@ export const ChatUI = ({
       <Chat client={client}>
         <Channel channel={channel}>
           <Window>
-            <div className="h-[480px] border-b border-[#412D15]/10 bg-[#F8F5EF] relative">
+            <div className="h-120 border-b border-[#412D15]/10 bg-[#F8F5EF] relative">
               <MessageList />
             </div>
             <div className="p-3 bg-[#F8F5EF]">
