@@ -12,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "VANNI AI | AI Meeting Workspace",
+    default: "VANNI AI",
     template: "%s | VANNI AI",
   },
   description: "VANNI AI is an AI-powered meeting workspace that lets you create AI agents, conduct intelligent meetings, generate transcripts, summaries, and actionable insights.",
