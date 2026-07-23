@@ -28,6 +28,7 @@ Vanni AI is a full-stack SaaS application built to automate meeting workflows. U
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
 - [System Architecture](#-system-architecture)
+- [End-to-End Workflow & Diagrams](#-end-to-end-workflow--diagrams)
 - [Project Structure](#-project-structure)
 - [Key Features Explained](#-key-features-explained)
 - [Future Improvements](#-future-improvements)
@@ -176,6 +177,14 @@ flowchart TD
         SUMM -->|Store Summary| DB
     end
 ```
+
+---
+
+## 📊 End-to-End Workflow & Diagrams
+
+For a detailed, step-by-step technical breakdown of the entire Vanni AI lifecycle—including individual sequence diagrams and technical explanations for all 10 workflow phases (Authentication, Agent Creation, Meeting Creation, Real-Time Gemini Live Audio Streaming, Inngest Async Queue Processing, and RAG Transcript Ask AI)—refer to:
+
+👉 **[End-to-End Architecture & Sequence Workflow Documentation](./END_TO_END_WORKFLOW.md)**
 
 ---
 
